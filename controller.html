@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Controller</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+user-select:none;
+-webkit-user-select:none;
+}
+
+html,body{
+
+width:100%;
+height:100%;
+overflow:hidden;
+
+}
+
+body{
+
+background:#00ff00;
+
+cursor:pointer;
+
+touch-action:manipulation;
+
+transition:background .1s;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<audio id="tun" preload="auto">
+<source src="tun.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+
+const socket = new WebSocket(
+    location.protocol === "https:"
+        ? "wss://" + location.host
+        : "ws://" + location.host
+);
+
+const tun=document.getElementById("tun");
+
+let running=false;
+
+// Unlock Audio
+document.body.addEventListener("click",()=>{
+
+tun.play().then(()=>{
+
+tun.pause();
+
+tun.currentTime=0;
+
+}).catch(()=>{});
+
+},{once:true});
+
+// Vibrate
+function vibrate(ms){
+
+if(navigator.vibrate){
+
+navigator.vibrate(ms);
+
+}
+
+}
+
+// Flash
+function flash(){
+
+document.body.style.background="#ffffff";
+
+setTimeout(()=>{
+
+if(running){
+
+document.body.style.background="#00dd00";
+
+}else{
+
+document.body.style.background="#00ff00";
+
+}
+
+},80);
+
+}
+
+// Single Tap
+document.body.addEventListener("click",()=>{
+
+flash();
+
+tun.currentTime=0;
+tun.play().catch(()=>{});
+
+if(!running){
+
+socket.send("START");
+
+running=true;
+
+vibrate(40);
+
+document.body.style.background="#00dd00";
+
+}else{
+
+socket.send("STOP");
+
+running=false;
+
+vibrate(40);
+
+document.body.style.background="#00ff00";
+
+}
+
+});
+
+// Double Tap
+document.body.addEventListener("dblclick",(e)=>{
+
+e.preventDefault();
+
+socket.send("RESET");
+
+running=false;
+
+vibrate(100);
+
+document.body.style.background="#00ff00";
+
+});
+
+// Disable Context Menu
+document.addEventListener("contextmenu",(e)=>{
+
+e.preventDefault();
+
+});
+
+</script>
+
+</body>
+</html>

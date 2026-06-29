@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Stopwatch Display</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html,body{
+
+width:100%;
+height:100%;
+overflow:hidden;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+background:#000;
+
+touch-action:none;
+
+}
+
+#timer{
+
+font-family:monospace;
+
+font-size:200px;
+
+font-weight:700;
+
+color:#24ff24;
+
+letter-spacing:12px;
+
+text-shadow:none;
+
+user-select:none;
+
+-webkit-user-select:none;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="timer">00:00</div>
+
+<audio id="tun" preload="auto">
+<source src="tun.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+
+const timer=document.getElementById("timer");
+const tun=document.getElementById("tun");
+
+const socket = new WebSocket(
+    location.protocol === "https:"
+        ? "wss://" + location.host
+        : "ws://" + location.host
+);
+
+let running=false;
+let elapsed=0;
+let startTime=0;
+
+// Unlock Audio
+document.body.addEventListener("click",()=>{
+
+tun.play().then(()=>{
+
+tun.pause();
+tun.currentTime=0;
+
+}).catch(()=>{});
+
+document.documentElement.requestFullscreen?.();
+
+},{once:true});socket.onmessage=(e)=>{
+
+if(e.data==="START"){
+
+running=true;
+startTime=Date.now()-elapsed;
+
+tun.currentTime=0;
+tun.play().catch(()=>{});
+
+}
+
+if(e.data==="STOP"){
+
+running=false;
+
+tun.currentTime=0;
+tun.play().catch(()=>{});
+
+}
+
+if(e.data==="RESET"){
+
+running=false;
+elapsed=0;
+
+timer.innerHTML="00:00";
+
+}
+
+};
+
+function update(){
+
+if(running){
+
+elapsed=Date.now()-startTime;
+
+// 4 digits only
+let seconds=Math.floor(elapsed/1000)%100;
+
+let hundredths=Math.floor((elapsed%1000)/10);
+
+timer.innerHTML=
+
+String(seconds).padStart(2,"0")
+
++
+
+":"
+
++
+
+String(hundredths).padStart(2,"0");
+
+}
+
+requestAnimationFrame(update);
+
+}
+
+update();
+
+</script>
+
+</body>
+
+</html>
