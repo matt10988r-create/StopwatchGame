@@ -62,6 +62,26 @@ wss.on("connection", ws => {
 
     });
 
+    ws.on("error", err => {
+        console.error("[WebSocket] Client error:", err);
+    });
+
+});
+
+wss.on("error", err => {
+    console.error("[WebSocket Server] Error:", err);
+});
+
+server.on("error", err => {
+    console.error("[HTTP Server] Error:", err);
+});
+
+process.on("uncaughtException", err => {
+    console.error("[Process] Uncaught exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("[Process] Unhandled promise rejection at:", promise, "reason:", reason);
 });
 
 server.listen(PORT, () => {
